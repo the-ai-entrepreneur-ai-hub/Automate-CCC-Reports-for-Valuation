@@ -8,38 +8,69 @@ This repository demonstrates the automated valuation system workflow for process
 
 ```mermaid
 flowchart TD
-    A[Start Valuation Process] --> B[Load Configuration File<br>'valuation_config.txt']
-    B --> C[Parse PER_MILE_RATE,<br>OPTION_ADJUSTMENTS,<br>IGNORE_VALUATION_BELOW]
+    A[Start: 2007 BMW 335i Total Loss<br>VIN: WBAWB73557P034289<br>45,000 miles] --> B[Load Configuration File<br>'valuation_config.txt']
     
-    C --> D[Input Loss Vehicle Details:<br>VIN, Mileage, Options]
-    D --> E[Input Comparable Vehicle Data:<br>List Price, Mileage, Options]
-
-    E --> F{Source Valuation >= IGNORE_VALUATION_BELOW?}
-    F -- No --> G[Discard as Unreliable Data]
-    F -- Yes --> H[Process Comparable]
+    B --> C[Parse Config Parameters:<br>PER_MILE_RATE = $0.12<br>AVG_MILEAGE_2007_335i = 152,300<br>IGNORE_VALUATION_BELOW = $6,000]
     
-    subgraph H [Adjust Comparable Value]
-        direction TB
-        H1[Calculate Mileage Difference<br>Loss_Mileage - Comp_Mileage]
-        H2[Apply Mileage Adjustment<br>Difference * PER_MILE_RATE]
-        H3[For each option in comp...]
-        H4{Option on Loss Vehicle?}
-        H3 --> H4
-        H4 -- No --> H5[Apply Adjustment from Config<br>e.g., +750 for 'Premium Package']
-        H4 -- Yes --> H6[No Adjustment Needed]
-        H2 & H5 & H6 --> H7[Sum All Adjustments]
-        H8[Comp List Price] --> H9[Calculate Adjusted Value<br>List Price + Total Adjustments]
+    C --> D[Gather Source Valuations]
+    
+    subgraph D1 [Source Valuations]
+        D2[NADA: $TBD]
+        D3[KBB Private Party: $TBD] 
+        D4[CCC Official: $8,431]
+        D5[J.D. Power: $5,163]
     end
-
-    H --> I[Store Adjusted Value]
-    G --> J[Next Comparable]
-    I --> J
     
-    J --> K{More Comparables?}
-    K -- Yes --> E
-    K -- No --> L[Calculate Final ACV<br>e.g., Average of All Adjusted Values]
+    D --> E{Apply Ignore Filter<br>Value >= $6,000?}
     
-    L --> M[Output Final Valuation Report]
+    E -- J.D. Power: NO --> F[Discard J.D. Power<br>Too Low - Data Error]
+    E -- Others: YES --> G[Keep Valid Sources]
+    
+    G --> H[Find Market Comparables]
+    
+    subgraph H1 [Market Comparables Found]
+        H2[Comp 1: $9,990<br>71,575 mi, Convertible<br>Lodi, NJ]
+        H3[Comp 2: $9,495<br>67,100 mi, Coupe<br>Charlotte, NC - Damage History]
+        H4[Comp 3: $16,500<br>60,939 mi, Coupe<br>Mishawaka, IN - Outlier?]
+        H5[Comp 4: $10,999<br>114,462 mi, Manual<br>Raleigh, NC]
+    end
+    
+    H --> I[Process Each Comparable]
+    
+    subgraph I1 [Adjustment Engine]
+        I2[Calculate Mileage Difference<br>Comp_Miles - Loss_Miles = Difference]
+        I3[Mileage Adjustment<br>Difference × $0.12/mile]
+        I4[Body Style Adjustment<br>Convertible vs Coupe: -$500]
+        I5[Transmission Adjustment<br>Manual vs Auto: -$300]
+        I6[Condition Adjustment<br>Damage History: -$800]
+        I7[Sum All Adjustments]
+        I8[Adjusted Value = List Price + Total Adjustments]
+    end
+    
+    I --> J[Example Calculations]
+    
+    subgraph J1 [Comp 1 Calculation]
+        J2[Lodi Car: $9,990]
+        J3[Miles: 71,575 - 45,000 = 26,575 higher]
+        J4[Mileage Adj: 26,575 × $0.12 = +$3,189]
+        J5[Body Adj: Convertible = -$500]
+        J6[Adjusted Value: $9,990 + $3,189 - $500 = $12,679]
+    end
+    
+    J --> K[Calculate Final ACV<br>Average of Adjusted Comparables]
+    
+    K --> L[Add Taxes & Fees<br>NJ Sales Tax: 6.625%]
+    
+    L --> M[Subtract Deductible<br>Policy Deductible: $1,000]
+    
+    M --> N[Final Settlement Amount]
+    
+    N --> O[Generate Dispute Documentation<br>If settlement too low]
+    
+    style F fill:#ff9999
+    style H3 fill:#ffeb99
+    style H4 fill:#ff9999
+    style O fill:#99ff99
 ```
 
 ## Key Features
