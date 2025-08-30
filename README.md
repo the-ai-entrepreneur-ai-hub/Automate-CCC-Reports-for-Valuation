@@ -67,10 +67,10 @@ flowchart TD
     
     N --> O[Generate Dispute Documentation<br>If settlement too low]
     
-    style F fill:#ff6666
-    style H3 fill:#ffcc66
-    style H4 fill:#ff6666
-    style O fill:#66ff66
+    style F fill:#ff6666,color:#ffffff
+    style H3 fill:#ffcc66,color:#000000
+    style H4 fill:#ff6666,color:#ffffff
+    style O fill:#66ff66,color:#000000
 ```
 
 ## Key Features
